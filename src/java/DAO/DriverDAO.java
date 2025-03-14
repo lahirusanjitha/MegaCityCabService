@@ -68,18 +68,32 @@ public class DriverDAO {
         }
         return null;
     }
+        public int getRegisteredDrivers() {
+        String query = "SELECT COUNT(*) FROM driver";
+        try (PreparedStatement stmt = connection.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 
-       public boolean updateDriverStatus(int driverId, String status) {
+    public boolean updateDriverStatus(int driverId, Driver driver) {
         String query = "UPDATE driver SET status = ? WHERE driverId = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setString(1, status);
-            stmt.setInt(2, driverId);
+            stmt.setString(1, driver.getStatus()); 
+            stmt.setInt(2, driverId); 
+
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return false;
     }
+
        
        public boolean deleteDriverById(int driverId) {
         String query = "DELETE FROM driver WHERE driverId = ?";

@@ -7,17 +7,12 @@ package DAO;
 import DB.DBUtil;
 import Model.Bill;
 import Service.BillService;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Paragraph;
-
-import com.itextpdf.text.pdf.PdfWriter;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -54,6 +49,22 @@ public class BillDAO {
         return false;
     }
     
+    public List<Bill> getAllBills() {
+        List<Bill> bills = new ArrayList<>();
+        String query = "SELECT * FROM bill";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                bills.add(mapBill(rs)); 
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return bills;
+    }
+    
     public Bill getBillByBookingId(int bookingId) {
         String query = "SELECT * FROM bill WHERE bookingId = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
@@ -79,34 +90,32 @@ public class BillDAO {
         }
         return null;
     }
+     public boolean deleteBill(int billId) {
+        String query = "DELETE FROM bill  WHERE billId = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, billId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
     
-//public byte[] generateBillPDF(int billId) throws DocumentException {
-//    Bill bill = billService.getBillByBookingId(billId);
-//    if (bill == null) {
-//        return null;  
-//    }
-//
-//    try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-//        Document document = new Document();
-//        PdfWriter writer = PdfWriter.getInstance(document, outputStream); 
-//        document.open(); 
-//
-//        document.add(new Paragraph("Mega City Cab - Bill"));
-//        document.add(new Paragraph("Bill ID: "));
-//        document.add(new Paragraph("Booking ID:"));
-//        document.add(new Paragraph("Total Fare: $"));
-//        document.add(new Paragraph("Tax: $"));
-//        document.add(new Paragraph("Grand Total: $"));
-//
-//        document.close(); 
-//
-//        return outputStream.toByteArray(); 
-//    } catch (IOException e) {
-//        e.printStackTrace();
-//        return null;
-//    }
-//
-//}
+        private Bill mapBill(ResultSet rs) throws SQLException {
+        Bill bill = new Bill();
+            bill.setBillId(rs.getInt("billId"));
+            bill.setBookingId(rs.getInt("bookingId"));
+            bill.setBaseFare(rs.getDouble("baseFare")); 
+            bill.setDistance(rs.getDouble("distance"));
+            bill.setRatePerKm(rs.getDouble("ratePerKm"));
+            bill.setDuration(rs.getDouble("duration"));
+            bill.setRatePerMinute(rs.getDouble("ratePerMinute"));
+            bill.setAdditionalCharges(rs.getDouble("additionalCharges"));
+            bill.setTaxRate(rs.getDouble("taxRate"));
+            bill.setTotalFare(rs.getDouble("totalFare"));
+        return bill;
+    }
+    
 }
 
 

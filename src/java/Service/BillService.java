@@ -18,6 +18,7 @@ import com.itextpdf.text.pdf.PdfWriter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 /**
  *
@@ -29,9 +30,16 @@ public class BillService {
      public boolean createBill(int bookingId, double totalFare, Bill bill){
         return billDAO.createBill(bookingId, totalFare, bill);
     }
+    public List<Bill> getAllBills() {
+        return billDAO.getAllBills();
+    }
     public Bill getBillByBookingId(int bookingId){
         return billDAO.getBillByBookingId(bookingId);
     }
+    public boolean deleteBillById(int billId) {
+        return billDAO.deleteBill(billId);
+    }
+    
     public double calculateTotalFare(Bill bill) {
         double fareForDistance = bill.getDistance() * bill.getRatePerKm();
         double fareForDuration = bill.getDuration() * bill.getRatePerMinute();

@@ -68,11 +68,25 @@ public class VehicleDAO {
         }
         return null;
     }
+    
+        public int getAvailableVehicles() {
+        String query = "SELECT COUNT(*) FROM vehicle WHERE status = 'Available'";
+        try (PreparedStatement stmt = connection.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 
-    public boolean updateVehicleStatus(int vehicleId, String status) {
+
+    public boolean updateVehicleStatus(int vehicleId, Vehicle vehicle) {
         String query = "UPDATE vehicle SET status = ? WHERE vehicleId = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setString(1, status);
+            stmt.setString(1, vehicle.getStatus());
             stmt.setInt(2, vehicleId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {

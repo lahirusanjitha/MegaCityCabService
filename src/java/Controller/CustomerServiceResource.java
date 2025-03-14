@@ -17,7 +17,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -43,9 +42,8 @@ public class CustomerServiceResource {
     }
     
     @POST
-    @Path("/login")
-    
-public Response login(Map<String, String> credentials) {
+    @Path("login")
+    public Response login(Map<String, String> credentials) {
         String userName = credentials.get("userName");
         String password = credentials.get("password");
 
@@ -53,15 +51,19 @@ public Response login(Map<String, String> credentials) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Username and password are required").build();
         }
 
-        boolean isAuthenticated = customerService.login(userName, password);
-        
-        if (isAuthenticated) {
-            Map<String, String> response = new HashMap<>();
+        int customerId = customerService.login(userName, password); 
+
+        if (customerId > 0) {
+            Map<String, Object> response = new HashMap<>();
             response.put("message", "Login successful");
             response.put("status", "success");
+            response.put("customerId", customerId); 
             return Response.ok(response).build();
         } else {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid credentials").build();
+                       return Response.status(Response.Status.CREATED)
+                           .entity("{\"error\": \"Invaild cardinatials\"}") 
+                           .type(MediaType.APPLICATION_JSON)
+                           .build();
         }
     }
     @GET
@@ -80,6 +82,14 @@ public Response login(Map<String, String> credentials) {
             return Response.ok(customer).build();
         }
         return Response.status(Response.Status.NOT_FOUND).entity("customer not found").build();
+    }
+    @GET
+    @Path("/totalCustomers")
+    public Response getRegisteredCustomers() {
+        int registeredCustomers = customerService.getRegisteredCustomers();
+        Map<String, Integer> response = new HashMap<>();
+        response.put("registeredCustomers", registeredCustomers);
+        return Response.ok(response).build();
     }
          
     @PUT
@@ -100,7 +110,7 @@ public Response login(Map<String, String> credentials) {
     }
     
     @DELETE
-    @Path("deleteDriver/{id}")
+    @Path("deleteCustomer/{id}")
     public Response deleteCustomerById(@PathParam("id") int customerId) {
         boolean isDeleted = customerService.deleteCustomerById(customerId);
         if (isDeleted) {

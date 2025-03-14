@@ -26,7 +26,7 @@ public class CustomerDAO {
         connection = DBUtil.getInstance().getConnection();
     }
     
-        public boolean registerCustomer(Customer customer) {
+    public boolean registerCustomer(Customer customer) {
         try {
             String hashedPassword = BCrypt.hashpw(customer.getPassword(), BCrypt.gensalt(12));
             
@@ -47,21 +47,25 @@ public class CustomerDAO {
         }
     }
    
- public boolean validateLogin(String userName, String password) {
+    public int validateLogin(String userName, String password) {
         try {
-            String query = "SELECT password FROM customer WHERE userName = ?";
+            String query = "SELECT customerId,password FROM customer WHERE userName = ?";
             PreparedStatement stmt = connection.prepareStatement(query);
             stmt.setString(1, userName);
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
+                int customerId = rs.getInt("customerId");
                 String hashedPassword = rs.getString("password"); 
-                return BCrypt.checkpw(password, hashedPassword);
+                if (BCrypt.checkpw(password, hashedPassword)) {
+                return customerId; 
+               }
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return false;
+        return -1;
     }
  
   public List<Customer> getAllCustomers() {
@@ -94,6 +98,19 @@ public class CustomerDAO {
         return null;
     }
     
+    public int getRegisteredCustomers() {
+        String query = "SELECT COUNT(*) FROM customer";
+        try (PreparedStatement stmt = connection.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    
     public boolean updateCustomer(int customerId,Customer customer) {
         String query = "UPDATE customer SET name = ?, address = ?, nic = ?, tel = ? WHERE customerId = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
@@ -111,7 +128,7 @@ public class CustomerDAO {
     }
     
     public boolean deleteCustomerById(int customerId) {
-        String query = "DELETE FROM customer WHERE driverId = ?";
+        String query = "DELETE FROM customer WHERE customerId = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, customerId);
     
